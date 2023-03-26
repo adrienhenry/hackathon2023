@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "hackathon"
+version = "0.1.0"
+description = ""
+authors = ["Adrien Henry <adrien.henry@braincube.com>"]
+
+[tool.poetry.dependencies]
+python = "~3.9"
+scipy = "1.9"
+simulation-api = {url = "https://braincube.pages.ipleanware.com/recherche/pipeline_autonomous/simulator_api/dist/simulation_api-0.7.1-py3-none-any.whl"}
+colorama = "^0.4.6"
+streamlit-authenticator = "^0.2.1"
+poetry = "^1.4.1"
+plotly = "^5.13.1"
+scikit-learn = "^1.2.2"
+tensorflow = "^2.12.0"
+matplotlib = "^3.7.1"
+tqdm = "^4.65.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+import argparse
+import subprocess
+from loguru import logger
+
+parser = argparse.ArgumentParser(
+    description="Kill a proccess linked to an old sever port."
+)
+parser.add_argument(
+    "-P", "--port", type=str, help="Port of the webservice to kill.", required=True
+)
+args = parser.parse_args()
+
+pid = int(subprocess.check_output(["lsof", "-t", "-i", f":{args.port}"]))
+subprocess.call(["kill", "-9", str(pid)])
+logger.info(f"Killed process {pid} associated to port {args.port}.")

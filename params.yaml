@@ -1,0 +1,38 @@
+contexts:
+  temperature: REAL
+  speed: REAL
+  temperature_ext: REAL
+  optimal_energy: REAL
+  product_diffusion_coeff: REAL
+  time: REAL
+settings:
+  speed_setting: REAL
+  temperature_setting: REAL
+outputs:
+  quality: REAL
+  product_id: INTEGER
+  time_spent: REAL
+temp_init: 23.0
+temp_ext_init: 23.0
+speed_init: 0.5
+temperature_inertia: 10
+product_spacing: 1
+speed_inertia: 3
+diffusion_coeff:
+  E: 1
+  O: 1
+  P: 0.005
+  F: 1
+  A: 1
+temperature_ext:
+  mean: 20
+  scale: 5
+  step_scale: 0.5
+products_variability:
+  energy_min: 200
+  energy_max: 300
+  coeff_min: 0.05
+  coeff_max: 0.10
+seed: 12
+nsteps: 220
+warmup: 20
