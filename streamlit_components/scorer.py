@@ -86,6 +86,7 @@ def score_evolution():
     st.title("Score evolution")
     score_data = scores.get_scores()
     fig = px.scatter(score_data, x="date", y="score", color="user")
+    fig.update_traces(marker=dict(size=10), selector=dict(mode="markers"))
     st.plotly_chart(fig)
 
 

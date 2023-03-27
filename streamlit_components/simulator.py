@@ -145,4 +145,5 @@ def plot_results():
         con = sqlite3.connect(db_name)
         df = pd.read_sql_query("SELECT * from history", con)
         fig = px.line(df, x="id", y="quality")
+        fig.update_traces(marker=dict(size=30), selector=dict(mode="markers"))
         st.plotly_chart(fig)
