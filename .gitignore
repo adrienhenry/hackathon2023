@@ -7,3 +7,4 @@ public/
 .DS_Store
 temp.py
 poetry.lock
+.space
