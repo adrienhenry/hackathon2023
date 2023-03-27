@@ -15,7 +15,7 @@ scikit-learn = "^1.2.2"
 tensorflow = "^2.12.0"
 matplotlib = "^3.7.1"
 tqdm = "^4.65.0"
-pipeline-mb-tools = {url = "https://github.com/adrienhenry/hackathon2023/raw/master/lib/simulation_api-0.7.1-py3-none-any.wh"}
+simulation-api = {url = "https://github.com/adrienhenry/hackathon2023/raw/master/lib/simulation_api-0.7.1-py3-none-any.whl"}
 
 [tool.poetry.dev-dependencies]
 
