@@ -46,7 +46,10 @@ class Scores:
     def get_last_user_score(self, name):
         data = self._con.execute(
             "SELECT * from scores WHERE user = ? ORDER BY date DESC LIMIT 1", (name,)
-        ).fetchall()[0]
+        ).fetchall()
+        if len(data) == 0:
+            return None, None
+        data = data[0]
         return datetime.datetime.strptime(data[0], DATE_TIME_FORMAT), data[2]
 
 
@@ -57,8 +60,9 @@ def leaderboard():
     st.title("Leaderboard")
     best_scores = scores.get_best_score()
     df = pd.DataFrame(best_scores)
-    df.iloc[0, 0] = "{} {}".format("👑", df.iloc[0, 0])
-    st.table(df.set_index(0).rename(columns={1: "Score"}))
+    if len(best_scores) > 0:
+        df.iloc[0, 0] = "{} {}".format("👑", df.iloc[0, 0])
+        st.table(df.set_index(0).rename(columns={1: "Score"}))
 
 
 def score_evolution():

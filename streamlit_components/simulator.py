@@ -48,7 +48,8 @@ def algo_uploader():
 
 
 def launch_model():
-
+    if run_new_model_disabled():
+        return
     subprocess.Popen(
         [
             f"{sys.executable}",
@@ -88,11 +89,14 @@ def run_model():
         state_manager.get_state("existing_model") is not None
         and state_manager.get_state("model_launched") is None
     ):
-        st.button("Run model", on_click=launch_model, disabled=run_new_model_disabled())
+        st.button("Run model", on_click=launch_model)
 
 
 def run_new_model_disabled():
+
     date, quality = scores.get_last_user_score(st.session_state["name"])
+    if date is None:
+        return False
     if datetime.datetime.now() > date + datetime.timedelta(hours=1):
         return False
     else:
