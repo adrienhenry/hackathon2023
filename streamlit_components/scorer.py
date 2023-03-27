@@ -3,56 +3,69 @@ import json
 import plotly.express as px
 import pandas as pd
 import os
+import sqlite3
+import datetime
 
-
-def with_write(func):
-    def wrapper(self, *args, **kwargs):
-        func(self, *args, **kwargs)
-        self.write()
-
-    return wrapper
+DATE_TIME_FORMAT = "%d/%m/%Y %H:%M:%S"
 
 
 class Scores:
     def __init__(self, filename):
         self.filename = filename
         if os.path.exists(filename):
-            with open(filename) as f:
-                self.scores = json.load(f)
+            self._con = sqlite3.connect(filename, check_same_thread=False)
         else:
-            self.scores = {}
+            self._con = sqlite3.connect(filename, check_same_thread=False)
+            self.run_command(
+                "CREATE TABLE scores(date TEXT PRIMARY KEY, user TEXT, score REAL)"
+            )
 
-    def write(self):
-        with open(self.filename, "w") as f:
-            json.dump(self.scores, f)
+    def run_command(self, command, args=()):
+        self._con.execute(command, args)
+        self._con.commit()
 
-    @with_write
-    def add_score(self, user, score):
-        if user in self.scores:
-            self.scores[user].append(score)
-        else:
-            self.scores[user] = [score]
+    def add_score(self, date, user, score):
+        self.run_command(
+            "INSERT OR IGNORE INTO scores VALUES (?, ?, ?)", (date, user, score)
+        )
 
     def get_scores(self):
-        return {key: pd.DataFrame(val) for key, val in self.scores.items()}
+        return pd.read_sql_query(
+            "SELECT * from scores", self._con, parse_dates={"date": DATE_TIME_FORMAT}
+        )
 
     def get_best_score(self):
-        return {
-            key: pd.DataFrame(val)["quality"].max() for key, val in self.scores.items()
-        }
+        best_scores = (
+            self.get_scores()
+            .groupby("user")
+            .max()
+            .sort_values("score", ascending=False)
+        )
+        return [(user, row["score"]) for user, row in best_scores.iterrows()]
+
+    def get_last_user_score(self, name):
+        data = self._con.execute(
+            "SELECT * from scores WHERE user = ? ORDER BY date DESC LIMIT 1", (name,)
+        ).fetchall()[0]
+        return datetime.datetime.strptime(data[0], DATE_TIME_FORMAT), data[2]
 
 
-scores = Scores("data/scores.json")
+scores = Scores("data/scores.db")
 
 
 def leaderboard():
     st.title("Leaderboard")
     best_scores = scores.get_best_score()
-    best_scores = pd.DataFrame(best_scores, index=["quality"]).T.sort_values(
-        "quality", ascending=False
-    )
-    print(best_scores)
-    st.table(best_scores)
+    df = pd.DataFrame(best_scores)
+    df.iloc[0, 0] = "{} {}".format("👑", df.iloc[0, 0])
+    st.table(df.set_index(0).rename(columns={1: "Score"}))
+
+
+def score_evolution():
+    st.title("Score evolution")
+    score_data = scores.get_scores()
+    fig = px.scatter(score_data, x="date", y="score", color="user")
+    st.plotly_chart(fig)
 
 
 def plot_scores():
@@ -65,3 +78,4 @@ def plot_scores():
 def score_tab():
     st.title("Score")
     leaderboard()
+    score_evolution()

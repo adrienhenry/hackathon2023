@@ -11,9 +11,10 @@ import sqlite3
 import shutil
 import pandas as pd
 import json
+import datetime
 
 state_manager = None
-scores = Scores("data/scores.json")
+scores = Scores("data/scores.db")
 
 
 def upload_files(files):
@@ -56,6 +57,8 @@ def launch_model():
             "params.yaml",
             "-a",
             state_manager.get_state("existing_model"),
+            "-u",
+            st.session_state["name"],
         ]
     )
     state_manager.set_state("model_launched", True)
@@ -73,13 +76,9 @@ def log_progrtest_reco_algo():
         else:
             progress = 0
         if progress == 1:
-            with open(
-                os.path.join(state_manager.get_state("existing_model"), "results.json")
-            ) as f:
-                results = json.load(f)
-            scores.add_score(st.session_state["username"], results)
+            date, quality = scores.get_last_user_score(st.session_state["name"])
             plot_results()
-            st.write("Score(average quality):", results["quality"])
+            st.write("Score(average quality): {0:.2f}".format(quality))
         else:
             st.progress(progress)
 
@@ -89,7 +88,20 @@ def run_model():
         state_manager.get_state("existing_model") is not None
         and state_manager.get_state("model_launched") is None
     ):
-        st.button("Run model", on_click=launch_model)
+        st.button("Run model", on_click=launch_model, disabled=run_new_model_disabled())
+
+
+def run_new_model_disabled():
+    date, quality = scores.get_last_user_score(st.session_state["name"])
+    if datetime.datetime.now() > date + datetime.timedelta(hours=1):
+        return False
+    else:
+        st.warning(
+            "You can't run a new model yet, wait until {}".format(
+                (date + datetime.timedelta(hours=1)).strftime("%H:%M")
+            )
+        )
+        return True
 
 
 def simulation_tab():

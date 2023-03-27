@@ -30,7 +30,7 @@ def handle_authentication_status():
     if st.session_state["authentication_status"]:
         col1, col2 = st.columns(2)
         with col1:
-            st.write(f"You are logged in as {st.session_state['username']}")
+            st.write(f"You are logged in as {st.session_state['name']}")
         with col2:
             authenticator.logout("Logout", "main")
         return True

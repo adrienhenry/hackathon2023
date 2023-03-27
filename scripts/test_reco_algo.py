@@ -11,10 +11,12 @@ import json
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.append(PROJECT_ROOT)
 from models.oven_api import OvenAPI
+from streamlit_components.scorer import Scores
 
 parser = argparse.ArgumentParser(description="Start the webservice.")
 parser.add_argument("-p", "--param", type=str, help="Parameter file.")
 parser.add_argument("-a", "--algo", type=str, help="Algo directory.", default="")
+parser.add_argument("-u", "--user", type=str, help="user name.", default="")
 args = parser.parse_args()
 ALGO_PATH = os.path.abspath(args.algo)
 sys.path.append(ALGO_PATH)
@@ -37,11 +39,9 @@ for i in range(param["nsteps"]):
 sys.path.remove(ALGO_PATH)
 df = pd.read_sql_query("SELECT * from history", con)
 
-with open(os.path.join(ALGO_PATH, "results.json"), "w") as f:
-    json.dump(
-        {
-            "date": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-            "quality": df["quality"].iloc[param["warmup"] :].mean(),
-        },
-        f,
-    )
+score = Scores(os.path.join(PROJECT_ROOT, "data/scores.db"))
+score.add_score(
+    datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+    args.user,
+    df["quality"].iloc[param["warmup"] :].mean(),
+)
