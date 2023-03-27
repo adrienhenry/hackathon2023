@@ -21,9 +21,19 @@ def upload_files(files):
     if len(files):
         path = os.path.join(os.getcwd(), os.path.join("temp", f"model_{uuid.uuid4()}"))
         os.mkdir(path)
+        non_py_files = [file.name for file in files if file.name[-2:] != "py"]
         for file in files:
             with open(os.path.join(path, file.name), "wb") as f:
-                f.write(file.getbuffer())
+                if file.name[-2:] == "py":
+                    f.write('import sys\nsys.path.append("{}")\n'.format(path).encode())
+                    text = file.read().decode()
+                    for dep_file in non_py_files:
+                        old_file_name = '"{}"'.format(dep_file)
+                        new_file_name = '"{}"'.format(os.path.join(path, dep_file))
+                        text = text.replace(old_file_name, new_file_name)
+                    f.write(text.encode())
+                else:
+                    f.write(file.getbuffer())
                 logger.success(f"Uploaded {file.name}")
         st.success("Model uploaded", icon="✅")
         return path
@@ -50,18 +60,18 @@ def algo_uploader():
 def launch_model():
     if run_new_model_disabled():
         return
-    subprocess.Popen(
-        [
-            f"{sys.executable}",
-            "scripts/test_reco_algo.py",
-            "-p",
-            "params.yaml",
-            "-a",
-            state_manager.get_state("existing_model"),
-            "-u",
-            st.session_state["name"],
-        ]
-    )
+    command = [
+        f"{sys.executable}",
+        "scripts/test_reco_algo.py",
+        "-p",
+        "params.yaml",
+        "-a",
+        state_manager.get_state("existing_model"),
+        "-u",
+        st.session_state["name"],
+    ]
+    print(" ".join(command))
+    subprocess.Popen(command)
     state_manager.set_state("model_launched", True)
 
 
@@ -93,7 +103,8 @@ def run_model():
 
 
 def run_new_model_disabled():
-
+    if st.session_state["username"] == "adrien":
+        return False
     date, quality = scores.get_last_user_score(st.session_state["name"])
     if date is None:
         return False
