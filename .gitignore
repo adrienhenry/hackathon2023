@@ -6,3 +6,4 @@ public/
 *.db
 .DS_Store
 temp.py
+poetry.lock

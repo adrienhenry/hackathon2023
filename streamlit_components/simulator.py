@@ -4,10 +4,16 @@ from loguru import logger
 import uuid
 import sys
 import subprocess
-import time
-from state_manager import HardStateManager
+from streamlit_components.state_manager import HardStateManager
+from streamlit_components.scorer import Scores
+import plotly.express as px
+import sqlite3
+import shutil
+import pandas as pd
+import json
 
 state_manager = None
+scores = Scores("data/scores.json")
 
 
 def upload_files(files):
@@ -23,17 +29,20 @@ def upload_files(files):
 
 
 def algo_uploader():
-    if st.session_state.get("existing_model", None) is None:
-        with st.form("my-form", clear_on_submit=True):
+    if state_manager.get_state("existing_model") is None:
+        with st.form("my-form   ", clear_on_submit=True):
             uploaded_files = st.file_uploader(
                 "Upload your model files", accept_multiple_files=True
             )
             submitted = st.form_submit_button("Upload")
             if submitted:
                 path = upload_files(uploaded_files)
-                st.session_state["existing_model"] = path
+                state_manager.set_state("existing_model", path)
+
                 logger.success(
-                    "Model uploaded to {}".format(st.session_state["existing_model"])
+                    "Model uploaded to {}".format(
+                        state_manager.get_state("existing_model")
+                    )
                 )
 
 
@@ -46,38 +55,68 @@ def launch_model():
             "-p",
             "params.yaml",
             "-a",
-            st.session_state["existing_model"],
+            state_manager.get_state("existing_model"),
         ]
     )
-    st.session_state["model_launched"] = True
+    state_manager.set_state("model_launched", True)
 
 
 def log_progrtest_reco_algo():
-    if st.session_state.get("model_launched", False):
+    global scores
+    if state_manager.get_state("model_launched"):
         progress_file_path = os.path.join(
-            st.session_state["existing_model"], "progress.txt"
+            state_manager.get_state("existing_model"), "progress.txt"
         )
         if os.path.exists(progress_file_path):
             with open(progress_file_path) as f:
                 progress = float(f.read())
         else:
             progress = 0
-        st.progress(progress)
+        if progress == 1:
+            with open(
+                os.path.join(state_manager.get_state("existing_model"), "results.json")
+            ) as f:
+                results = json.load(f)
+            scores.add_score(st.session_state["username"], results)
+            plot_results()
+            st.write("Score(average quality):", results["quality"])
+        else:
+            st.progress(progress)
 
 
 def run_model():
-    if "existing_model" in st.session_state and not st.session_state.get(
-        "model_launched", False
+    if (
+        state_manager.get_state("existing_model") is not None
+        and state_manager.get_state("model_launched") is None
     ):
         st.button("Run model", on_click=launch_model)
 
 
 def simulation_tab():
+    st.title("Simulation")
     global state_manager
     state_manager = HardStateManager(
         "data/{}_simulator.json".format(st.session_state["username"])
     )
-    st.write(st.session_state)
+
+    # st.write(st.session_state)
     algo_uploader()
+    if state_manager.get_state("existing_model") is not None:
+        st.button("Clear model", on_click=clear_model)
     run_model()
     log_progrtest_reco_algo()
+
+
+def clear_model():
+    if state_manager.get_state("existing_model") is not None:
+        shutil.rmtree(state_manager.get_state("existing_model"))
+        state_manager.clear_states()
+
+
+def plot_results():
+    if state_manager.get_state("existing_model") is not None:
+        db_name = os.path.join(state_manager.get_state("existing_model"), "history.db")
+        con = sqlite3.connect(db_name)
+        df = pd.read_sql_query("SELECT * from history", con)
+        fig = px.line(df, x="id", y="quality")
+        st.plotly_chart(fig)

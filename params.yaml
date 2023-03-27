@@ -33,6 +33,6 @@ products_variability:
   energy_max: 300
   coeff_min: 0.05
   coeff_max: 0.10
-seed: 12
+seed: 13
 nsteps: 220
 warmup: 20
