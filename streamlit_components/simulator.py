@@ -126,7 +126,6 @@ def simulation_tab():
         "data/{}_simulator.json".format(st.session_state["username"])
     )
 
-    # st.write(st.session_state)
     algo_uploader()
     if state_manager.get_state("existing_model") is not None:
         st.button("Clear model", on_click=clear_model)
