@@ -70,6 +70,7 @@ def launch_model():
         "-u",
         st.session_state["name"],
     ]
+    print(" ".join(command))
     subprocess.Popen(
         command,
         stderr=open(
@@ -105,6 +106,7 @@ def log_progrtest_reco_algo():
             date, quality = scores.get_last_user_score(st.session_state["name"])
             plot_results()
             st.write("Score(average quality): {0:.2f}".format(quality))
+
         else:
             st.progress(progress)
 
@@ -161,5 +163,11 @@ def plot_results():
         con = sqlite3.connect(db_name)
         df = pd.read_sql_query("SELECT * from history", con)
         fig = px.line(df, x="id", y="quality")
+        st.download_button(
+            label="Download data as CSV",
+            data=df.to_csv(index=False).encode("utf-8"),
+            file_name="history.csv",
+            mime="text/csv",
+        )
 
         st.plotly_chart(fig)
