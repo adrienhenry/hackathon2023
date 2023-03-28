@@ -118,6 +118,7 @@ def run_model():
 
 
 def run_new_model_disabled():
+    return False
     if st.session_state["username"] == "adrien":
         return False
     date, quality = scores.get_last_user_score(st.session_state["name"])
