@@ -70,8 +70,15 @@ def launch_model():
         "-u",
         st.session_state["name"],
     ]
-    print(" ".join(command))
-    subprocess.Popen(command)
+    subprocess.Popen(
+        command,
+        stderr=open(
+            os.path.join(state_manager.get_state("existing_model"), "error.txt"), "w"
+        ),
+        stdout=open(
+            os.path.join(state_manager.get_state("existing_model"), "output.txt"), "w"
+        ),
+    )
     state_manager.set_state("model_launched", True)
 
 
@@ -81,6 +88,14 @@ def log_progrtest_reco_algo():
         progress_file_path = os.path.join(
             state_manager.get_state("existing_model"), "progress.txt"
         )
+        error_file_path = os.path.join(
+            state_manager.get_state("existing_model"), "error.txt"
+        )
+        if os.path.exists(error_file_path):
+            with open(error_file_path) as f:
+                error = f.read()
+                if "error" in error.lower():
+                    st.error(error)
         if os.path.exists(progress_file_path):
             with open(progress_file_path) as f:
                 progress = float(f.read())
@@ -145,5 +160,5 @@ def plot_results():
         con = sqlite3.connect(db_name)
         df = pd.read_sql_query("SELECT * from history", con)
         fig = px.line(df, x="id", y="quality")
-        fig.update_traces(marker=dict(size=30), selector=dict(mode="markers"))
+
         st.plotly_chart(fig)
