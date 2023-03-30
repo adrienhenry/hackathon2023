@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+poetry run streamlit run Hackathon.py --server.port 5000

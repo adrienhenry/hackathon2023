@@ -109,6 +109,7 @@ def log_progrtest_reco_algo():
 
         else:
             st.progress(progress)
+            plot_results()
 
 
 def run_model():
