@@ -62,10 +62,11 @@ class Scores:
     @with_connection
     def get_last_user_score(self, name):
         data = self._con.execute(
-            "SELECT * from scores WHERE user = ? ORDER BY date DESC LIMIT 1", (name,)
+            "SELECT * from scores WHERE user = ?", (name,)
         ).fetchall()
         if len(data) == 0:
             return None, None
+        return data
         data = data[0]
         return datetime.datetime.strptime(data[0], DATE_TIME_FORMAT), data[2]
 
