@@ -66,8 +66,8 @@ class Scores:
         ).fetchall()
         if len(data) == 0:
             return None, None
-        return data
-        data = data[0]
+        # return data
+        data = data[-1]
         return datetime.datetime.strptime(data[0], DATE_TIME_FORMAT), data[2]
 
 
