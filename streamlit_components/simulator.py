@@ -161,14 +161,17 @@ def clear_model():
 def plot_results():
     if state_manager.get_state("existing_model") is not None:
         db_name = os.path.join(state_manager.get_state("existing_model"), "history.db")
-        con = sqlite3.connect(db_name)
-        df = pd.read_sql_query("SELECT * from history", con)
-        fig = px.line(df, x="id", y="quality")
-        st.download_button(
-            label="Download data as CSV",
-            data=df.to_csv(index=False).encode("utf-8"),
-            file_name="history.csv",
-            mime="text/csv",
-        )
+        try:
+            con = sqlite3.connect(db_name)
+            df = pd.read_sql_query("SELECT * from history", con)
+            fig = px.line(df, x="id", y="quality")
+            st.download_button(
+                label="Download data as CSV",
+                data=df.to_csv(index=False).encode("utf-8"),
+                file_name="history.csv",
+                mime="text/csv",
+            )
 
-        st.plotly_chart(fig)
+            st.plotly_chart(fig)
+        except pd.errors.DatabaseError:
+            pass

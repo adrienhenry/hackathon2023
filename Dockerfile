@@ -10,17 +10,3 @@ COPY . /opt/hackathon
 WORKDIR /opt/hackathon
 RUN poetry install --no-dev
 ENTRYPOINT ["./start_streamlit"]
-# # Start the server
-# FROM 3.9-slim-buster as running_image
-# ENV STUDY_DIRECTORY=/opt/blackcube_studies
-# WORKDIR /opt
-# RUN mkdir $STUDY_DIRECTORY
-# VOLUME $STUDY_DIRECTORY
-# ENV VIRTUAL_ENV="/opt/.venv"
-# ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-# COPY --from=setup_venv $VIRTUAL_ENV $VIRTUAL_ENV
-# ENV BLACKCUBE_PORT=5000
-# COPY --from=setup_venv /opt/blackcube blackcube
-# COPY --from=setup_venv /opt/pyproject.toml pyproject.toml
-# COPY start_blackcube_server start_blackcube_server
-# RUN chmod +x start_blackcube_server

@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-poetry run streamlit run Hackathon.py --server.port 5000
+poetry run streamlit run Hackathon.py --server.fileWatcherType none --server.port 5000
